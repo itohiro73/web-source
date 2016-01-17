@@ -4,11 +4,15 @@ browserSync = require 'browser-sync'
 $ = require('gulp-load-plugins')()
 path = require 'path'
 rimraf = require 'rimraf'
+zip = require 'gulp-zip'
+debug = require 'gulp-debug'
 
 handleError = (errors) ->
   console.log "Error!", errors.message
 
-g.task 'clean', (cb)-> rimraf 'site', cb 
+g.task 'clean-site', (cb)-> rimraf 'site', cb 
+g.task 'clean-dist', (cb)-> rimraf 'dist', cb 
+g.task 'clean', ["clean-site", "clean-dist"]
 jadeTask = (lang) ->
   locales = require "./locale/#{lang}.json"
 
@@ -33,3 +37,10 @@ g.task 'server', ['jade'], ->
 
   g.watch('view/**/*.jade', ['jade'])
   g.watch('locale/*.json', ['jade'])
+
+g.task 'archive', ->
+  g.src(['**/*'], {cwd: __dirname + "/site"})
+  .pipe debug {title: 'archive:'}
+  .pipe zip 'site.zip'
+  .pipe g.dest './dist'
+
